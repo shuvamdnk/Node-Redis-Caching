@@ -35,63 +35,67 @@ client.on('end', () => {
 
 
 // creating middleware
-const cacheFromRedis = async (req,res,next) => {
+const cacheFromRedis = async (req, res, next) => {
     const key = req.originalUrl;
     // connect to redis
     await client.connect();
     // get data from redis
     const value = await client.get(key);
+   
     
     if (value) {
         console.log('HIT');
-        // res.setHeader('X-Cache', 'hit');
+        // disconnect from redis
         await client.disconnect();
         return res.json(JSON.parse(value));
     }
+
+    // const handleResponse = async (data) => {
+    //     // connect to redis
+    //     await client.connect();
+    //     // set data into redis
+    //     const resp = await client.set(key, JSON.stringify(value), 'EX', 6000); // caching will be expired after 60s
+    //     // disconnect from redis
+    //     await client.disconnect();
+    //     console.log('MISS');
+    //     res.json(data);
+    // }
+
+    // const originalSend = res.send;
+    // res.send = function (data) {
+    //     originalSend.apply(res, arguments);
+    //     handleResponse(data);
+    //     console.log('hi');
+    // };
+
     next();
+
 }
 
-const cacheToRedis = async(key,value) => {
+const cacheToRedis = async (key, value) => {
     // console.log(value);
     // await client.connect();
-    const resp = await client.set(key, JSON.stringify(value),'EX',6000); // caching will be expired after 60s
-    await client.disconnect();
+    const resp = await client.set(key, JSON.stringify(value), 'EX', 6000); // caching will be expired after 60s
     console.log('MISS');
+    await client.disconnect();
     return resp;
 }
 
 app.use(cacheFromRedis);
 
-app.get('/',async(req,res,next) => {
-    // await client.connect();
-
-    // console.log(client.isReady());
-    // console.log(client.isOpen());
-    // await client.set('name', 'shuvam','EX',5);
-    // const value = await client.get('name');
-    // console.log(value); // returns 'bar'
-    // await client.disconnect();
-    // res.send({
-    //     message:"success"
-    // });
-
+app.get('/', async (req, res, next) => {
     try {
         const key = req.originalUrl;
         // const apiRes = await axios.get(`https://mobileadmin.nybizz.com/api/customer/popular`);
         // const data = apiRes.data
         const respone = await axios.get('https://api.spacexdata.com/v3/rockets')
-        // console.log();
-        // const data = {
-        //     message: 'Hi'
-        // }
-        // console.log('inside fun');
-        const resp = await cacheToRedis(key,respone.data);
+
+        const data = respone.data;
+
+        const resp = await cacheToRedis(key,data);
         console.log(resp);
-        // const end = process.hrtime(res.locals.start); // Calculate the elapsed time
-        // const responseTimeInMs = (end[0] * 1000 + end[1] / 1000000).toFixed(2); // Convert to milliseconds and format
-        // Include the response time in the response body
-        // data.responseTime = responseTimeInMs;
-        res.status(200).send(respone.data)
+
+        res.status(200).send(data)
     } catch (error) {
         console.log(error);
         res.send('error')
