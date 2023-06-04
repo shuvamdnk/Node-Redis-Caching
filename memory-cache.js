@@ -3,7 +3,6 @@ const app = express();
 const NodeCache = require('node-cache');
 const cache = new NodeCache();
 const axios = require('axios');
-// const {client, closeRedisConnection, cacheMiddleware, cacheResponseToRedis} = require('./redis');
 
 
 function cacheMiddleware(req, res, next) {
@@ -12,6 +11,7 @@ function cacheMiddleware(req, res, next) {
     console.log(cache.keys());
     // Check if cached response exists
     const cachedResponse = cache.get(key);
+    console.log(cachedResponse);
     if (cachedResponse) {
         console.log('HIT');
         res.setHeader('X-Cache', 'hit');
@@ -55,30 +55,6 @@ app.get('/', async (req, res, next) => {
         res.send('error')
     }
 });
-
-
-
-
-// Define your API routes
-// app.get('/api', async (req, res) => {
-//     try {
-//         const originalUrl = req.originalUrl;
-//         // const apiRes = await axios.get(`https://mobileadmin.nybizz.com/api/customer/popular`);
-//         // const data = apiRes.data;
-//         const data = {
-//             message:'Hi'
-//         }
-//         if(cacheResponseToRedis(originalUrl,data)){
-//             console.log('Miss');
-//             return res.send(data);
-//         }else{
-//             throw new Error('Error');
-//         }
-//     } catch (error) {
-//         closeRedisConnection();
-//         console.log(error);
-//     }
-// });
 
 
 app.listen(5000, () => {

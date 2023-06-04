@@ -6,11 +6,8 @@ const app = express()
 app.use(responseTime())
 
 const client = createClient({
-    password: 'ki5zzmf2oSPOqO4XA3rnzfWlbTn7OaTt',
-    socket: {
-        host: 'redis-15271.c9.us-east-1-2.ec2.cloud.redislabs.com',
-        port: 15271
-    }
+    host: '127.0.0.1',
+    port: 6379,
 });
 
 client.on('connect', () => {
@@ -50,6 +47,8 @@ const cacheFromRedis = async (req, res, next) => {
         return res.json(JSON.parse(value));
     }
 
+
+    
     // const handleResponse = async (data) => {
     //     // connect to redis
     //     await client.connect();
